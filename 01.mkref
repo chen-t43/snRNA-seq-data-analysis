@@ -1,0 +1,5 @@
+#!/bin/bash
+#SBATCH --cpus-per-task=40 --mem=30G
+# Step 1: Build the Cell Ranger reference genome for snRNA-seq analysis.
+# The channel catfish reference genome and corresponding GTF annotation file were used.
+/tchen43/software/cellranger-9.0.0/bin/cellranger mkref --genome channel --fasta GCF_001660625.3_Coco_2.0_genomic.fna --genes genomic.gtf --output-dir genome --memgb 30 --nthreads 40 
