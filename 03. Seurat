@@ -1,0 +1,51 @@
+The file should be at " /tchen43/singlecell/female_cellcount_output/outs/filtered_feature_bc_matrix " 
+library(dplyr)
+library(Seurat)
+library(ggplot2)
+library(patchwork)
+library(openxlsx)
+library(readxl)
+countdata <- Read10X(data.dir = "/tchen43/singlecell/female_cellcount_output/outs/filtered_feature_bc_matrix")
+data <- CreateSeuratObject(counts = countdata, project = "female")
+VlnPlot(data, features = c("nFeature_RNA", "nCount_RNA"), ncol = 2)
+ggsave('raw.violin.jpg',width = 8,height = 8,dpi = 300)
+summary(data$nCount_RNA)
+quantile(data$nCount_RNA,probs = c(0.01, 0.05, 0.10, 0.25, 0.5, 0.75, 0.90, 0.95, 0.99))
+summary(data$nFeature_RNA)
+quantile(data$nFeature_RNA,probs = c(0.01, 0.05, 0.10, 0.25, 0.5, 0.75, 0.90, 0.95, 0.99))
+data
+data <- subset(data, subset = nFeature_RNA > 100 & nFeature_RNA < 10000 & nCount_RNA <20000)
+data
+VlnPlot(data, features = c("nFeature_RNA", "nCount_RNA"), ncol = 2)
+ggsave('filter.violin.jpg',width = 8,height = 8,dpi = 300)
+data <- NormalizeData(data, normalization.method = "LogNormalize", scale.factor = 10000)
+data<- FindVariableFeatures(data, selection.method = "vst", nfeatures = 2000)
+all.genes <- rownames(data)
+data <- ScaleData(data, features = all.genes)
+data<- RunPCA(data, features = VariableFeatures(object = data))
+VizDimLoadings(data, dims = 1:2, reduction = "pca")
+DimPlot(data, reduction = "pca")
+jpeg("15PCA.heatmap.jpg",width = 12,height = 8,units = "in",res = 300)
+DimHeatmap(data, dims = 1:15, cells = 500, balanced = TRUE)
+dev.off()
+data <- JackStraw(data, num.replicate = 100)
+data <- ScoreJackStraw(data, dims = 1:15)
+JackStrawPlot(data, dims = 1:15)
+ggsave('JackStrawPlot.jpg',width = 8,height = 8,dpi = 300)
+ElbowPlot(data)
+ggsave('ElbowPlot.jpg',width = 8,height = 8,dpi = 300)
+data <- FindNeighbors(data, dims = 1:15)
+data <- FindClusters(data, resolution = 0.4) 
+data<- RunUMAP(data, dims = 1:15)
+DimPlot(data, reduction = "umap") 
+ggsave(filename = './umap_female.png',width = 10,height = 10)
+data <- RunTSNE(data,dims=1:15)
+DimPlot(data,reduction = "tsne",label=TRUE,label.size = 6,pt.size = 1)
+markers <- FindAllMarkers(data, only.pos = TRUE, 
+                          min.pct = 0.25, logfc.threshold = 0.25)
+top200 <- markers %>% group_by(cluster) %>% top_n(n = 200, wt = avg_log2FC)
+
+
+
+
+
