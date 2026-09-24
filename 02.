@@ -1,0 +1,17 @@
+#!/bin/bash
+#SBATCH --cpus-per-task=60
+#SBATCH --mem=100G
+
+# Step 2: Process the female snRNA-seq FASTQ files using Cell Ranger.
+# Cell Ranger count was used to align reads to the reference genome and generate the gene expression matrix.
+
+/tchen43/software/cellranger-9.0.0/bin/cellranger count \
+    --id=female \
+    --description=female \
+    --sample=F \
+    --transcriptome==/tchen43/singlecell/genome/ \
+    --fastqs=/tchen43/singlecell/Female \
+    --localcores=60 \
+    --localmem=100 \
+    --create-bam=true \
+    --output-dir=female_cellcount_output
